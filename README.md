@@ -12,6 +12,14 @@
 
 ---
 
+## 🌐 Live Deployments
+
+- **Live Dashboard**: [https://ahu-monitor.vercel.app](https://ahu-monitor.vercel.app)
+- **FastAPI Swagger Docs**: [https://ahu-monitor.onrender.com/docs](https://ahu-monitor.onrender.com/docs)
+- **GitHub Repository**: [https://github.com/amit0101/ahu-monitor](https://github.com/amit0101/ahu-monitor)
+
+---
+
 ## ✨ What This Demonstrates
 
 | Dimension | Approach |
