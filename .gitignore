@@ -46,6 +46,7 @@ e2e_test.py
 *plan*.md
 aqueduct_predictive_maintenance_plan.md
 email_response.txt
+docs/BACKEND_CHEATSHEET.*
 
 # Jupyter
 .ipynb_checkpoints/
