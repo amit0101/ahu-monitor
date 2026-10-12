@@ -159,7 +159,7 @@ class SimulationEngine:
                             logger.warning("Observer error during fast-forward: %s", exc)
                     n += 1
                     if n % 20 == 0:
-                        await asyncio.sleep(0)   # yield; also the cancellation point
+                        await asyncio.sleep(0.001)   # yield; ensures server responds to incoming connections
             finally:
                 st.fast_forwarding = False
                 # A speed change requested mid-pre-roll wins over the pre-roll value

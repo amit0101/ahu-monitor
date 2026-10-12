@@ -187,7 +187,7 @@ class AnomalyDetector:
                 contamination=self._contamination,
                 n_estimators=50,
                 random_state=42,
-                n_jobs=-1,   # use all CPUs for training
+                n_jobs=1,    # single worker: avoids fork/OOM overhead in cloud containers
             )
             state._iso_forest.fit(X)
             # Calibrate: record median score on training data (the "normal" baseline)
