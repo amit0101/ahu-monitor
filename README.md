@@ -1,6 +1,14 @@
 # AHU Predictive Maintenance Digital Twin
 
-> A full-stack predictive maintenance digital twin for Air Handling Units (AHU): physics-based degradation simulation, multi-signal anomaly detection, fault diagnosis, and Remaining Useful Life (RUL) estimation with a real-time 3D dashboard.
+> A full-stack predictive maintenance digital twin for Air Handling Units (AHU): physics-based degradation simulation, multi-signal anomaly detection, fault diagnosis, and Remaining Useful Life (RUL) estimation with a real-time dashboard.
+
+### 3D Spatial Digital Twin
+*Interactive Three.js open-frame AHU model with component-level health coloring and live telemetry:*
+![AHU Digital Twin 3D View](docs/images/dashboard_3d.png)
+
+### 2D P&ID Process Flow Schematic
+*Real-time process flow diagram with component health status, sensor gauges, and RUL badges:*
+![AHU Process Flow 2D Schematic](docs/images/dashboard_2d.png)
 
 ---
 
