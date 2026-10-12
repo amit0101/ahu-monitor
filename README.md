@@ -121,10 +121,9 @@ ahu-monitor/
         └── stores/        Zustand global state
 ```
 
-See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for a detailed system design narrative.
-Interactive documentation:
-- [`docs/BACKEND_EXPLAINED.html`](docs/BACKEND_EXPLAINED.html) — Layered engineering explainer
-- [`docs/BACKEND_CHEATSHEET.html`](docs/BACKEND_CHEATSHEET.html) — Quick technical reference
+Documentation:
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — System architecture, design decisions, and POC-to-production roadmap
+- [`docs/BACKEND_CHEATSHEET.md`](docs/BACKEND_CHEATSHEET.md) — Technical reference of formulas, constants, and decision rules
 
 ---
 
