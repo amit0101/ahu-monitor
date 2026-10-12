@@ -43,6 +43,8 @@ E2E_REPORT.md
 e2e_screenshots/
 e2e_test.py
 *.plan.md
+*plan*.md
+aqueduct_predictive_maintenance_plan.md
 email_response.txt
 
 # Jupyter
