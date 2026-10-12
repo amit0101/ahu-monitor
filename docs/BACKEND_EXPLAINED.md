@@ -52,15 +52,15 @@ x_clipped = clip(x, min_valid, max_valid)
 Baseline statistical profiles ($\mu$, $\sigma$, rated limits) are defined per sensor point in `twin/factory.py` according to industrial AHU equipment ratings.
 
 ### Physics-Based Fault Curves
-When a fault begins at `onset_day`, its degradation severity $s(t)$ follows the underlying physics of that mechanical failure mode ($t = \text{sim\_day} - \text{onset\_day}$):
+When a fault begins at `onset_day`, its degradation severity $s(t)$ follows the underlying physics of that mechanical failure mode (where `t = sim_day - onset_day`):
 
 | Fault Mode | Entity | Severity Curve $s(t)$ | Physical Rationale | Signal Effects at Full Severity ($s=1.0$) |
 |---|---|---|---|---|
-| **FM-1 Bearing Wear** | Return Fan | $\alpha(e^{\beta t} - 1)$<br>$\alpha=0.0008, \beta=0.130$ | Exponential fatigue spalling: micro-pitting creates vibration, accelerating contact damage. | Vibration $\times 2.80$ (+180% ISO 10816 Zone D), Bearing Temp $+25^\circ\text{C}$, Current $\times 1.08$, Acoustic $\times 1.40$ |
-| **FM-2 Belt Slippage** | Supply Fan | $\gamma t^2$<br>$\gamma=0.0008$ | Quadratic friction wear: gradual tension loss followed by rapid thermal/elastic decay. | Vibration $\times 1.60$, Acoustic squeal $\times 1.25$, Fan Speed $\times 0.90$ (-10%), Current dips $15\%$ then surges $+40\%$ |
-| **FM-3 Coil Fouling** | Cooling Coil | $\delta t$<br>$\delta=0.022$ | Linear fouling resistance (biofilm and particulate scale per TEMA/ASHRAE). | Discharge Temp $+4.0^\circ\text{C}$, Coil $\Delta T \times 0.70$ (-30%), Power $\times 1.15$ (+15%) |
-| **FM-4 Filter Clogging** | Filter Bank | $\epsilon t^{1.5}$<br>$\epsilon=0.018$ | Sub-exponential Darcy-Weisbach cake buildup as pores progressively choke. | Filter $\Delta P \times 3.0$ (120 Pa $\to$ 360 Pa, exceeding ASHRAE 250 Pa limit), Airflow $\times 0.80$ (-20%), Current $\times 1.12$ (+12%) |
-| **FM-5 Damper Failure** | Mixing Damper | $t / 40.0$<br>(reaches $1.0$ at 40 d) | Actuator motor winding failure: positioning hysteresis transitioning to fixed stuck mechanical bind. | Mixed Air Temp $\pm 3s^\circ\text{C}$ drift $\to$ stuck $+8^\circ\text{C}$ offset past $s \ge 0.7$, Power $\times 1.25$ (+25%) |
+| **FM-1 Bearing Wear** | Return Fan | $\alpha(e^{\beta t} - 1)$<br>$\alpha=0.0008, \beta=0.130$ | Exponential fatigue spalling: micro-pitting creates vibration, accelerating contact damage. | Vibration $\times 2.80$ (+180% ISO 10816 Zone D), Bearing Temp +25 °C, Current $\times 1.08$, Acoustic $\times 1.40$ |
+| **FM-2 Belt Slippage** | Supply Fan | $\gamma t^2$<br>$\gamma=0.0008$ | Quadratic friction wear: gradual tension loss followed by rapid thermal/elastic decay. | Vibration $\times 1.60$, Acoustic squeal $\times 1.25$, Fan Speed $\times 0.90$ (-10%), Current dips 15% then surges +40% |
+| **FM-3 Coil Fouling** | Cooling Coil | $\delta t$<br>$\delta=0.022$ | Linear fouling resistance (biofilm and particulate scale per TEMA/ASHRAE). | Discharge Temp +4.0 °C, Coil $\Delta T \times 0.70$ (-30%), Power $\times 1.15$ (+15%) |
+| **FM-4 Filter Clogging** | Filter Bank | $\epsilon t^{1.5}$<br>$\epsilon=0.018$ | Sub-exponential Darcy-Weisbach cake buildup as pores progressively choke. | Filter $\Delta P \times 3.0$ (120 Pa → 360 Pa, exceeding ASHRAE 250 Pa limit), Airflow $\times 0.80$ (-20%), Current $\times 1.12$ (+12%) |
+| **FM-5 Damper Failure** | Mixing Damper | $t / 40.0$<br>(reaches $1.0$ at 40 d) | Actuator motor winding failure: positioning hysteresis transitioning to fixed stuck mechanical bind. | Mixed Air Temp $\pm 3s$ °C drift → stuck +8 °C offset past $s \ge 0.7$, Power $\times 1.25$ (+25%) |
 
 ---
 
