@@ -1,6 +1,6 @@
-# Architecture — Aqueduct Predictive Maintenance POC
+# Architecture — AHU Predictive Maintenance Digital Twin
 
-> This document explains the system design decisions and engineering rationale behind each layer of the POC.
+> This document explains the system design decisions and engineering rationale behind each layer of the platform.
 
 ---
 
@@ -70,7 +70,7 @@ AHU-01
 ```
 
 Each entity carries:
-- **Haystack-inspired tags**: `{ahu, equip, fan, supply, motor, …}` — semantic metadata matching how Milvian's aQ Core platform models assets.
+- **Haystack-inspired tags**: `{ahu, equip, fan, supply, motor, …}` — semantic metadata standard for modern BMS/CMMS models.
 - **Sensor points**: typed (`SensorKind`), with baseline distribution parameters drawn from real HVAC engineering data.
 - **Health score**: rolled up from signal → component → system level.
 

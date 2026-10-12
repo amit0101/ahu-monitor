@@ -1,8 +1,6 @@
-# Aqueduct Predictive Maintenance POC
+# AHU Predictive Maintenance Digital Twin
 
-> **Built for Milvian Group / Aqueduct** — demonstrating credible predictive-maintenance engineering: physics-based simulation, multi-signal anomaly detection, fault diagnosis, and Remaining Useful Life estimation with a real-time 3D dashboard.
-
-![Dashboard preview — AHU digital twin with live sensor telemetry, health gauges, and fault alerts](docs/dashboard_preview.png)
+> A full-stack predictive maintenance digital twin for Air Handling Units (AHU): physics-based degradation simulation, multi-signal anomaly detection, fault diagnosis, and Remaining Useful Life (RUL) estimation with a real-time 3D dashboard.
 
 ---
 
@@ -24,17 +22,17 @@
 
 ```bash
 # 1. Clone
-git clone https://github.com/your-username/aqueduct-assignment.git
-cd aqueduct-assignment
+git clone https://github.com/amit0101/ahu-monitor.git
+cd ahu-monitor
 
-# 2. (Optional) Set OpenAI key for the aQ Assistant chat panel
+# 2. (Optional) Set OpenAI key for the AI Assistant chat panel
 export OPENAI_API_KEY=sk-...
 
 # 3. One-command startup
 docker compose up --build
 ```
 
-Open **http://localhost:5173** — the dashboard loads with the AHU in normal state and the simulation running at 50× speed.
+Open **http://localhost:5173** — the dashboard loads with the AHU in normal state and the simulation running.
 
 > The `--build` flag is only needed on first run. Subsequent starts use `docker compose up`.
 
@@ -73,26 +71,26 @@ The simulation runs an **accelerated 90-day scenario** at 50× speed (≈ 3 minu
 | 0–20 | Normal operation — all components green, baseline telemetry |
 | **~20** | 🟡 Filter bank ΔP begins rising (FM-4: filter clogging) |
 | **~25** | First alert: *"Filter Bank health degrading"* — ΔP chart crosses 250 Pa reference line |
-| **~35** | 🟡 Supply fan vibration begins exponential rise (FM-1: bearing wear) |
+| **~35** | 🟡 Return fan vibration begins exponential rise (FM-1: bearing wear) |
 | **~42** | Bearing fault diagnosed: *"Probable cause: Bearing Wear (progressive)"* — RUL estimate appears |
 | **~55** | 🔴 Coil fouling detected (FM-3) — concurrent fault test |
-| **~65** | Supply fan health critical — RUL < 20 days |
+| **~65** | Return fan health critical — RUL < 20 days |
 | **~70** | Maintenance recommendation: *"Replace fan bearings — Priority: CRITICAL"* |
 
 ### Interactive Controls
 
-- **Speed slider** — throttle from 1× to 100× in real time
+- **Speed slider & controls** — throttle from 1× to 100× in real time, or pause/resume
+- **Milestone Jump** — jump directly to key timeline milestones (Day 25 filter alert, Day 40 bearing fault, Day 50 multi-fault)
 - **Inject Fault** — manually trigger any of the 5 fault modes at the current sim day
-- **Perform Maintenance** (restart) — resets the simulation to demonstrate recovery
-- **aQ Assistant** — ask questions like *"What's wrong with the supply fan?"* (requires OpenAI key)
-- **3D model** — click components to filter the sensor panel
+- **2D / 3D Views** — switch between P&ID process flow schematic and interactive 3D scene
+- **AI Assistant** — ask questions like *"What's wrong with the fan?"* (requires OpenAI key)
 
 ---
 
 ## 🏗 Architecture
 
 ```
-aqueduct-assignment/
+ahu-monitor/
 ├── backend/               FastAPI application
 │   ├── twin/              Digital twin graph (Haystack-inspired entities)
 │   ├── simulator/         Physics-based degradation engine (50× speed)
@@ -102,23 +100,34 @@ aqueduct-assignment/
 └── frontend/              React 18 + TypeScript dashboard
     └── src/
         ├── three/         React Three Fiber 3D AHU scene
-        ├── components/    Dashboard panels (charts, health, alerts, maintenance)
+        ├── components/    Dashboard panels (P&ID schematic, charts, health, alerts, maintenance)
         ├── hooks/         WebSocket + REST polling hooks
         └── stores/        Zustand global state
 ```
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for a detailed system design narrative.
+Interactive documentation:
+- [`docs/BACKEND_EXPLAINED.html`](docs/BACKEND_EXPLAINED.html) — Layered engineering explainer
+- [`docs/BACKEND_CHEATSHEET.html`](docs/BACKEND_CHEATSHEET.html) — Quick technical reference
 
 ---
 
-## 🧪 Tests
+## 🧪 Tests & Evaluation
 
+### Automated Unit Tests
 ```bash
 cd backend
 pytest -v                              # 31 tests (14 degradation + 17 analytics)
 ```
 
 All tests run in < 3 seconds. No mocking of the simulation engine — tests exercise real degradation curves and real anomaly detectors.
+
+### Headless Scenario Evaluation
+```bash
+cd backend
+python3 evaluate.py
+```
+Runs the full 90-day simulation headlessly and evaluates the analytics against ground truth (lead time, detection rate, false alarms).
 
 ---
 
@@ -130,7 +139,7 @@ Key settings in `backend/.env` (copy from `.env.example`):
 |----------|---------|-------------|
 | `SIM_SPEED_MULTIPLIER` | `50` | Simulation acceleration (1–500×) |
 | `SIM_AUTO_PLAY` | `true` | Start simulation on app boot, at `SIM_START_DAY` (default 25) |
-| `OPENAI_API_KEY` | *(empty)* | For aQ Assistant LLM chat |
+| `OPENAI_API_KEY` | *(empty)* | For AI Assistant LLM chat |
 | `OPENAI_MODEL` | `gpt-4o-mini` | LLM model selection |
 | `EWMA_ALPHA` | `0.01` | EWMA smoothing factor (lower = slower to adapt) |
 | `HEALTH_WARNING_THRESHOLD` | `0.70` | Health score → WARNING state |
@@ -142,11 +151,11 @@ Key settings in `backend/.env` (copy from `.env.example`):
 
 | Layer | Technology | Why |
 |-------|------------|-----|
-| Backend | Python 3.11 + FastAPI | JD primary backend stack |
-| Analytics | NumPy, SciPy, scikit-learn | Physics fits + Isolation Forest |
-| Real-time | WebSocket (FastAPI native) | Live sensor streaming |
-| Frontend | React 18 + TypeScript + Vite | JD primary frontend stack |
-| State | Zustand | Lightweight, no boilerplate |
-| Charts | Recharts | Composable React charting |
-| 3D | React Three Fiber (Three.js) | JD: "3D digital twins" |
-| Containers | Docker + docker-compose | One-command reviewer experience |
+| Backend | Python 3.11 + FastAPI | Async ASGI framework with high throughput |
+| Analytics | NumPy, SciPy, scikit-learn | Curve fitting, statistical filters, and Isolation Forest |
+| Real-time | WebSocket (FastAPI native) | Low-latency binary/JSON telemetry streaming |
+| Frontend | React 18 + TypeScript + Vite | Strongly-typed modern component architecture |
+| State | Zustand | Lightweight reactive state without boilerplate |
+| Charts | Recharts | SVG-based responsive timeseries charting |
+| 3D | React Three Fiber (Three.js) | WebGL spatial digital twin with component-level picking |
+| Containers | Docker + docker-compose | Reproducible multi-service deployment |

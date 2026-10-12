@@ -34,8 +34,15 @@ frontend/.vite/
 # Docker
 *.log
 
-# Chat transcripts / scratch
+# Chat transcripts / scratch / local dev
 *.jsonl
+DEV_TRACKER.md
+SESSION_HANDOFF.md
+START_PROMPT.md
+E2E_REPORT.md
+e2e_screenshots/
+e2e_test.py
+*.plan.md
 
 # Jupyter
 .ipynb_checkpoints/

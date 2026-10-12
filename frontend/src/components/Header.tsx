@@ -173,9 +173,9 @@ export default function Header({ theme, toggleTheme }: { theme: Theme; toggleThe
           flexShrink: 0,
         }} />
         <span style={{ fontWeight: 800, fontSize: 14, color: 'var(--color-blue)', letterSpacing: '-0.02em' }}>
-          aqueduct
+          AHU
         </span>
-        <span style={{ color: 'var(--color-text-mute)', fontSize: 12, fontWeight: 400 }}>PdM</span>
+        <span style={{ color: 'var(--color-text-mute)', fontSize: 12, fontWeight: 500 }}>Monitor</span>
         <div style={{
           background: 'var(--color-surface2)',
           border: '1px solid var(--color-border)',

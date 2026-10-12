@@ -1,4 +1,4 @@
-# docker-compose.yml — One-command startup for the Aqueduct PdM POC
+# docker-compose.yml — One-command startup for AHU PdM Digital Twin
 #
 # Usage:
 #   docker compose up --build        # First run (builds images)
@@ -17,7 +17,7 @@ services:
     build:
       context: ./backend
       dockerfile: ../Dockerfile.backend
-    container_name: aqueduct-backend
+    container_name: ahu-backend
     restart: unless-stopped
     ports:
       - "8000:8000"
@@ -45,7 +45,7 @@ services:
     build:
       context: ./frontend
       dockerfile: ../Dockerfile.frontend
-    container_name: aqueduct-frontend
+    container_name: ahu-frontend
     restart: unless-stopped
     ports:
       - "5173:80"
