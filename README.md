@@ -122,8 +122,9 @@ ahu-monitor/
 ```
 
 Documentation:
+- [`docs/BACKEND_EXPLAINED.md`](docs/BACKEND_EXPLAINED.md) — Layered engineering explainer: physics, detection, diagnosis, RUL, and alerting
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — System architecture, design decisions, and POC-to-production roadmap
-- [`docs/BACKEND_CHEATSHEET.md`](docs/BACKEND_CHEATSHEET.md) — Technical reference of formulas, constants, and decision rules
+- [`docs/BACKEND_CHEATSHEET.md`](docs/BACKEND_CHEATSHEET.md) — Quick technical reference of formulas, constants, and decision rules
 
 ---
 
