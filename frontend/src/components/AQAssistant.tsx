@@ -146,6 +146,7 @@ export default function AQAssistant() {
       const res = await fetch(getApiUrl('/assistant'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(25000),
         body: JSON.stringify({
           messages: [
             { role: 'system', content: SYSTEM_PROMPT },
@@ -154,14 +155,18 @@ export default function AQAssistant() {
           ],
         }),
       })
-      if (!res.ok) throw new Error('API error')
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '')
+        throw new Error(`API error ${res.status}${errText ? `: ${errText}` : ''}`)
+      }
       const data = await res.json()
       const reply = data.content ?? data.choices?.[0]?.message?.content ?? 'No response.'
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }])
-    } catch {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: '⚠ Unable to reach aQ Assistant. Check OpenAI API key in .env.' },
+        { role: 'assistant', content: `⚠ Unable to reach AI Assistant: ${msg}` },
       ])
     } finally {
       setLoading(false)

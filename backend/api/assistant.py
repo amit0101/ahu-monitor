@@ -38,7 +38,9 @@ async def chat_assistant(body: ChatRequest):
 
     try:
         from openai import AsyncOpenAI
-        client = AsyncOpenAI(api_key=settings.openai_api_key)
+        logger.info("Assistant request received (%d messages), calling OpenAI model=%s...",
+                    len(body.messages), settings.openai_model)
+        client = AsyncOpenAI(api_key=settings.openai_api_key, timeout=20.0)
 
         response = await client.chat.completions.create(
             model=settings.openai_model,
@@ -47,6 +49,7 @@ async def chat_assistant(body: ChatRequest):
             temperature=0.3,  # Low temp: factual, engineering-focused
         )
         content = response.choices[0].message.content or ""
+        logger.info("OpenAI reply received successfully (%d chars)", len(content))
         return {"content": content}
 
     except Exception as exc:
