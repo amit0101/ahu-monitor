@@ -85,13 +85,19 @@ export default function Header({ theme, toggleTheme }: { theme: Theme; toggleThe
   // This makes it immune to any race between concurrent requests or refreshStatus.
   const [selectedSpeed, setSelectedSpeed] = useState<number>(50)
   const speedInitialized = useRef(false)
-  // Seed from the first status we receive (e.g. after page refresh)
+  // Seed from the first valid status or snapshot we receive
   useEffect(() => {
-    if (!speedInitialized.current && simStatus?.speed_multiplier) {
-      setSelectedSpeed(simStatus.speed_multiplier)
-      speedInitialized.current = true
+    const raw = snapshot?.speed_multiplier ?? simStatus?.speed_multiplier
+    if (raw != null) {
+      const rounded = Math.round(raw)
+      if (SPEED_OPTIONS.includes(rounded)) {
+        if (!speedInitialized.current || !SPEED_OPTIONS.includes(selectedSpeed)) {
+          setSelectedSpeed(rounded)
+          speedInitialized.current = true
+        }
+      }
     }
-  }, [simStatus?.speed_multiplier])
+  }, [simStatus?.speed_multiplier, snapshot?.speed_multiplier, selectedSpeed])
 
   const speedAbortRef   = useRef<AbortController | null>(null)
   const speedChangingTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -272,7 +278,7 @@ export default function Header({ theme, toggleTheme }: { theme: Theme; toggleThe
                 style={{
                   padding: '2px 6px', fontSize: 11, minWidth: 34,
                   position: 'relative',
-                  ...(selectedSpeed === s ? {
+                  ...(Math.round(selectedSpeed) === s ? {
                     background: 'var(--color-blue)', color: '#fff', borderColor: 'var(--color-blue)',
                     boxShadow: '0 0 8px rgba(15,122,192,0.4)',
                     opacity: speedChanging ? 0.65 : 1,
@@ -281,7 +287,7 @@ export default function Header({ theme, toggleTheme }: { theme: Theme; toggleThe
                 onClick={() => handleSpeedClick(s)}
               >
                 {s}×
-                {selectedSpeed === s && speedChanging && (
+                {Math.round(selectedSpeed) === s && speedChanging && (
                   <span style={{
                     display: 'inline-block', width: 4, height: 4, borderRadius: '50%',
                     background: 'rgba(255,255,255,0.9)', marginLeft: 3, verticalAlign: 'middle',

@@ -143,8 +143,6 @@ class SimulationEngine:
         st = self.state
         if start_day > 0:
             logger.info("Fast-forwarding to day %d (silent pre-roll)…", start_day)
-            live_speed = st.speed_multiplier
-            st.speed_multiplier = 1800.0 * settings.sim_tick_hz  # 30 sim-min / tick
             st.ff_target_day = float(start_day)
             st.fast_forwarding = True
             n = 0
@@ -162,8 +160,8 @@ class SimulationEngine:
                         await asyncio.sleep(0.001)   # yield; ensures server responds to incoming connections
             finally:
                 st.fast_forwarding = False
-                # A speed change requested mid-pre-roll wins over the pre-roll value
-                st.speed_multiplier = self._pending_speed or live_speed
+                if self._pending_speed is not None:
+                    st.speed_multiplier = self._pending_speed
                 self._pending_speed = None
             logger.info("Fast-forward complete — live at day %.1f", st.sim_day)
         await self._run()
@@ -262,8 +260,9 @@ class SimulationEngine:
 
     def _tick(self) -> None:
         """Process one simulation tick: advance time, sample sensors, apply degradation."""
-        # Advance simulation time
-        day_increment = self.state.speed_multiplier / (settings.sim_tick_hz * 86400)
+        # Advance simulation time (fast-forward uses 30 sim-min steps)
+        effective_speed = (1800.0 * settings.sim_tick_hz) if self.state.fast_forwarding else self.state.speed_multiplier
+        day_increment = effective_speed / (settings.sim_tick_hz * 86400)
         self.state.sim_day = min(
             self.state.total_days,
             self.state.sim_day + day_increment,
