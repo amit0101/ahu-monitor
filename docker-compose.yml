@@ -1,0 +1,54 @@
+# docker-compose.yml — One-command startup for the Aqueduct PdM POC
+#
+# Usage:
+#   docker compose up --build        # First run (builds images)
+#   docker compose up                 # Subsequent runs (uses cached images)
+#   docker compose down               # Stop and remove containers
+#
+# Ports:
+#   http://localhost:5173  → Dashboard (frontend)
+#   http://localhost:8000  → FastAPI backend (REST + WebSocket)
+#   http://localhost:8000/docs → Swagger UI
+
+services:
+
+  # ── Backend: FastAPI + simulation engine ─────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../Dockerfile.backend
+    container_name: aqueduct-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Simulation settings (override via .env or environment variables)
+      SIM_AUTO_PLAY: "true"
+      SIM_SPEED_MULTIPLIER: "50"
+      SIM_TOTAL_DAYS: "90"
+      # OpenAI key for aQ Assistant (optional — assistant shows friendly error if missing)
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      OPENAI_MODEL: "gpt-4o-mini"
+    volumes:
+      # Hot-reload in development: uncomment to mount source
+      # - ./backend:/app
+      []
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # ── Frontend: React + Vite → nginx ───────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../Dockerfile.frontend
+    container_name: aqueduct-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      backend:
+        condition: service_healthy

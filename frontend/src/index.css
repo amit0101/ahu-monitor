@@ -1,0 +1,337 @@
+/* index.css — Aqueduct PdM Design System
+ *
+ * Theme architecture:
+ *   :root          → Light theme (default) — clean machine-monitoring panel
+ *   [data-theme="dark"] → Dark theme — Milvian navy, for dramatic demos
+ *
+ * Status colors are intentionally calmer in light mode:
+ *   green → deep teal  (readable on white)
+ *   amber → burnt orange
+ *   red   → deep crimson
+ *
+ * Google Font: Inter (loaded via index.html)
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* ── Reset & base ──────────────────────────────────────────────────────────── */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   LIGHT THEME (default)
+   Aesthetic: clean industrial HMI — think Siemens/ABB control panel
+   ══════════════════════════════════════════════════════════════════════════════ */
+:root {
+  /* Backgrounds */
+  --color-bg:        #EEF1F5;
+  --color-surface:   #FFFFFF;
+  --color-surface2:  #F4F7FA;
+  --color-surface3:  #E6ECF2;
+
+  /* Borders */
+  --color-border:    rgba(30, 60, 90, 0.12);
+  --color-border-hi: rgba(30, 60, 90, 0.28);
+
+  /* Brand / status */
+  --color-blue:      #1565A8;
+  --color-blue-dim:  rgba(21, 101, 168, 0.09);
+  --color-amber:     #C05C00;
+  --color-amber-dim: rgba(192, 92, 0, 0.09);
+  --color-green:     #0F7A4E;
+  --color-green-dim: rgba(15, 122, 78, 0.09);
+  --color-red:       #B82020;
+  --color-red-dim:   rgba(184, 32, 32, 0.09);
+
+  /* Text */
+  --color-text:      #1C2D3C;
+  --color-text-dim:  #4A647A;
+  --color-text-mute: #8A9EAE;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-med:  300ms ease;
+  --transition-slow: 500ms ease;
+
+  /* Glass (light) */
+  --glass-bg:     rgba(255, 255, 255, 0.92);
+  --glass-blur:   blur(12px);
+  --glass-border: 1px solid var(--color-border);
+
+  /* Header */
+  --header-bg: rgba(255, 255, 255, 0.97);
+
+  /* SVG schematic theme tokens */
+  --svg-housing-fill:   rgba(240, 244, 248, 0.85);
+  --svg-housing-stroke: rgba(30, 60, 90, 0.18);
+  --svg-duct-stroke:    rgba(21, 101, 168, 0.18);
+  --svg-duct-fill:      rgba(21, 101, 168, 0.04);
+  --svg-arrow-color:    rgba(21, 101, 168, 0.45);
+  --svg-label-color:    #4A647A;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   DARK THEME — Milvian navy palette
+   ══════════════════════════════════════════════════════════════════════════════ */
+[data-theme="dark"] {
+  --color-bg:        #0C1A26;
+  --color-surface:   #0f2235;
+  --color-surface2:  #162d42;
+  --color-surface3:  #1d3a52;
+  --color-border:    rgba(15, 122, 192, 0.18);
+  --color-border-hi: rgba(15, 122, 192, 0.4);
+
+  --color-blue:      #0F7AC0;
+  --color-blue-dim:  rgba(15, 122, 192, 0.15);
+  --color-amber:     #E8890C;
+  --color-amber-dim: rgba(232, 137, 12, 0.15);
+  --color-green:     #17A673;
+  --color-green-dim: rgba(23, 166, 115, 0.12);
+  --color-red:       #E84040;
+  --color-red-dim:   rgba(232, 64, 64, 0.12);
+
+  --color-text:      #c8dce9;
+  --color-text-dim:  #5a7a93;
+  --color-text-mute: #3a5568;
+
+  --glass-bg:     rgba(15, 34, 53, 0.85);
+  --glass-blur:   blur(12px);
+  --glass-border: 1px solid var(--color-border);
+
+  --header-bg: rgba(12, 26, 38, 0.98);
+
+  --svg-housing-fill:   rgba(15, 34, 53, 0.6);
+  --svg-housing-stroke: rgba(15, 122, 192, 0.2);
+  --svg-duct-stroke:    rgba(15, 122, 192, 0.2);
+  --svg-duct-fill:      rgba(15, 122, 192, 0.04);
+  --svg-arrow-color:    rgba(15, 122, 192, 0.55);
+  --svg-label-color:    #5a7a93;
+}
+
+/* ── Base ──────────────────────────────────────────────────────────────────── */
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 250ms ease, color 250ms ease;
+}
+
+/* ── Scrollbars ───────────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-surface3); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-border-hi); }
+
+/* ── Typography utilities ──────────────────────────────────────────────────── */
+
+.text-xs    { font-size: 10px; }
+.text-sm    { font-size: 12px; }
+.text-base  { font-size: 13px; }
+.text-md    { font-size: 15px; }
+.text-lg    { font-size: 18px; }
+.text-xl    { font-size: 22px; }
+.text-2xl   { font-size: 28px; }
+
+.font-normal  { font-weight: 400; }
+.font-medium  { font-weight: 500; }
+.font-semi    { font-weight: 600; }
+.font-bold    { font-weight: 700; }
+
+.text-dim   { color: var(--color-text-dim); }
+.text-mute  { color: var(--color-text-mute); }
+.text-blue  { color: var(--color-blue); }
+.text-amber { color: var(--color-amber); }
+.text-green { color: var(--color-green); }
+.text-red   { color: var(--color-red); }
+
+.label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-text-mute);
+}
+
+/* ── Layout utilities ──────────────────────────────────────────────────────── */
+
+.flex        { display: flex; }
+.flex-col    { flex-direction: column; }
+.flex-1      { flex: 1; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-1  { gap: var(--space-1); }
+.gap-2  { gap: var(--space-2); }
+.gap-3  { gap: var(--space-3); }
+.gap-4  { gap: var(--space-4); }
+.overflow-hidden { overflow: hidden; }
+.overflow-y-auto { overflow-y: auto; }
+
+/* ── Panel / card ──────────────────────────────────────────────────────────── */
+
+.panel {
+  background: var(--color-surface);
+  border: var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.panel-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-mute);
+  margin-bottom: var(--space-3);
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface2);
+  color: var(--color-text-dim);
+  border-radius: var(--radius-sm);
+  padding: 5px 12px;
+  font-size: 12px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn:hover {
+  border-color: var(--color-border-hi);
+  color: var(--color-blue);
+  background: var(--color-blue-dim);
+}
+
+.btn-primary {
+  background: var(--color-blue);
+  color: #fff;
+  border-color: var(--color-blue);
+}
+
+.btn-primary:hover {
+  opacity: 0.88;
+  color: #fff;
+}
+
+.btn-danger {
+  border-color: rgba(184, 32, 32, 0.3);
+  color: var(--color-red);
+}
+
+[data-theme="dark"] .btn-danger {
+  border-color: rgba(232, 64, 64, 0.4);
+}
+
+.btn-danger:hover {
+  background: var(--color-red-dim);
+  border-color: var(--color-red);
+}
+
+/* ── Badge / chip ──────────────────────────────────────────────────────────── */
+
+.badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.badge-blue   { background: var(--color-blue-dim);  color: var(--color-blue);  }
+.badge-amber  { background: var(--color-amber-dim); color: var(--color-amber); }
+.badge-green  { background: var(--color-green-dim); color: var(--color-green); }
+.badge-red    { background: var(--color-red-dim);   color: var(--color-red);   }
+
+/* ── State colors ──────────────────────────────────────────────────────────── */
+
+.state-normal   { color: var(--color-green); }
+.state-warning  { color: var(--color-amber); }
+.state-critical { color: var(--color-red); }
+.state-fault    { color: var(--color-red); }
+
+/* ── Divider ───────────────────────────────────────────────────────────────── */
+
+.divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: var(--space-3) 0;
+}
+
+/* ── Animations ────────────────────────────────────────────────────────────── */
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.animate-pulse { animation: pulse 2s ease-in-out infinite; }
+.animate-fade-in { animation: fadeIn 200ms ease forwards; }
+
+/* Day scrubber: transparent track over custom bar, visible thumb */
+.day-scrubber { -webkit-appearance: none; appearance: none; outline: none; }
+.day-scrubber::-webkit-slider-runnable-track { background: transparent; height: 22px; }
+.day-scrubber::-moz-range-track { background: transparent; height: 22px; }
+.day-scrubber::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 12px; height: 12px; margin-top: 5px; border-radius: 50%;
+  background: var(--color-blue); border: 2px solid var(--color-surface); box-shadow: 0 0 0 1px var(--color-blue);
+}
+.day-scrubber::-moz-range-thumb {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--color-blue); border: 2px solid var(--color-surface);
+}

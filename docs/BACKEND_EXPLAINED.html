@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How the Backend Works — Aqueduct PdM</title>
+<meta name="description" content="Layered explanation of the Aqueduct predictive maintenance backend: simulation, anomaly detection, health, diagnosis, RUL and alerting.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0C1A26; --bg-2: #10263a;
+    --card: rgba(255,255,255,0.035); --border: rgba(255,255,255,0.09);
+    --text: #dce6ee; --muted: #8aa0b2; --code-bg: rgba(15,122,192,0.14);
+    --blue: #0F7AC0; --blue-hi: #4cb0f0; --amber: #E8890C; --green: #17A673; --red: #E84040;
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #f4f7fa; --bg-2: #e8eef4; --card: #fff; --border: #d9e2ea;
+    --text: #13222f; --muted: #5a6e7f; --code-bg: rgba(15,122,192,0.08); --blue-hi: #0F7AC0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font: 15px/1.65 Inter, system-ui, sans-serif; color: var(--text);
+    background: radial-gradient(1000px 500px at 50% -10%, var(--bg-2), transparent), var(--bg);
+  }
+  main { max-width: 820px; margin: 0 auto; padding: 32px 24px 64px; }
+  header.top { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+  h1 { font-size: 26px; margin: 0; letter-spacing: -0.01em; }
+  h1 span { color: var(--blue-hi); }
+  .theme-btn {
+    background: var(--card); color: var(--text); border: 1px solid var(--border);
+    border-radius: 999px; padding: 6px 14px; font: inherit; font-size: 13px; cursor: pointer;
+  }
+  .theme-btn:hover { border-color: var(--blue); }
+  .sub { color: var(--muted); margin: 6px 0 28px; }
+  .sub a { color: var(--blue-hi); }
+
+  .abstract {
+    border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; margin-bottom: 28px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--blue) 14%, transparent), transparent 60%), var(--card);
+  }
+  .abstract h2 { margin-top: 0; }
+  .qs { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; margin-top: 12px; }
+  .q { border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 13px; background: var(--card); }
+  .q b { display: block; color: var(--blue-hi); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+
+  section { border-left: 3px solid var(--accent, var(--blue)); padding: 2px 0 2px 18px; margin: 30px 0; }
+  h2 { font-size: 19px; margin: 0 0 6px; }
+  h2 .n { color: var(--accent, var(--blue)); font-family: "JetBrains Mono", monospace; font-size: 14px; margin-right: 6px; }
+  .lead { font-size: 16px; font-weight: 500; margin: 0 0 10px; }
+  h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 16px 0 6px; }
+  p { margin: 0 0 10px; }
+  ul { margin: 0 0 10px; padding-left: 20px; }
+  li { margin: 3px 0; }
+  code {
+    font-family: "JetBrains Mono", monospace; font-size: 13px;
+    background: var(--code-bg); padding: 1px 5px; border-radius: 4px;
+  }
+  .math {
+    display: block; font-family: "JetBrains Mono", monospace; font-size: 13.5px; line-height: 1.8;
+    background: var(--code-bg); padding: 10px 14px; border-radius: 10px; margin: 6px 0 12px; overflow-x: auto;
+    white-space: pre;
+  }
+  .note {
+    font-size: 13.5px; color: var(--muted); border: 1px dashed var(--border);
+    border-radius: 10px; padding: 8px 12px; margin: 10px 0;
+  }
+  .note b { color: var(--amber); }
+  table { border-collapse: collapse; font-size: 13.5px; margin: 6px 0 12px; width: 100%; }
+  th, td { text-align: left; padding: 5px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; }
+  .flow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 8px 0 4px; font-size: 13px; }
+  .flow span { background: var(--code-bg); color: var(--blue-hi); padding: 2px 10px; border-radius: 999px; }
+  .flow i { color: var(--muted); font-style: normal; }
+</style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <h1>How the Backend <span>Works</span></h1>
+    <button class="theme-btn" id="theme-toggle" type="button">Toggle theme</button>
+  </header>
+  <p class="sub">Big picture first, then each stage in more detail with its maths. Every number is in the <a href="BACKEND_CHEATSHEET.html">cheatsheet</a>.</p>
+
+  <!-- ABSTRACT -->
+  <div class="abstract">
+    <h2>The big picture</h2>
+    <p>The backend is a <b>digital twin of one air-handling unit (AHU)</b>. The AHU is modelled as a graph of components (fans, coils, filter, damper), and each component has sensors.</p>
+    <p>There are two independent halves:</p>
+    <ul>
+      <li><b>The simulator</b> knows the ground truth. It produces sensor readings and injects faults that grow over time.</li>
+      <li><b>The analytics</b> never see the ground truth. They see only the readings and each sensor's normal profile (μ, σ), and they have to work out what's going on.</li>
+    </ul>
+    <p>On every tick, the analytics answer five questions in order:</p>
+    <div class="qs">
+      <div class="q"><b>1 · Detect</b>Is this reading abnormal?</div>
+      <div class="q"><b>2 · Assess</b>How healthy is each component?</div>
+      <div class="q"><b>3 · Diagnose</b>Which fault fits the pattern?</div>
+      <div class="q"><b>4 · Predict</b>How long until failure?</div>
+      <div class="q"><b>5 · Act</b>Is it worth alerting someone?</div>
+    </div>
+  </div>
+
+  <!-- 0 SIMULATION -->
+  <section style="--accent: var(--green)">
+    <h2><span class="n">0</span>Making the data</h2>
+    <p class="lead">Normal readings are noise around a mean. A fault is a hidden severity <code>s(t)</code> that rises from 0 to 1 and distorts specific signals.</p>
+
+    <h3>Normal operation</h3>
+    <p>Each sensor reading is Gaussian around its rated mean, plus a gentle daily cycle and an occasional spike:</p>
+    <span class="math">x = N(μ, σ) + 0.5σ·sin(2π·day) + rare spike N(0, 2σ)   (p = 0.5%)</span>
+
+    <h3>Faults</h3>
+    <p>Each fault has a severity curve. Its shape comes from the physics of the failure:</p>
+    <table>
+      <thead><tr><th>Fault</th><th>s(t)</th><th>Why that shape</th></tr></thead>
+      <tbody>
+        <tr><td>Bearing wear</td><td><code>α(e^(βt) − 1)</code></td><td>Fatigue spalling grows on itself: damage → more vibration → more damage</td></tr>
+        <tr><td>Filter clogging</td><td><code>εt^1.5</code></td><td>The dust cake thickens, so resistance rises faster than linearly</td></tr>
+        <tr><td>Coil fouling</td><td><code>δt</code></td><td>Fouling resistance builds up roughly at a constant rate</td></tr>
+        <tr><td>Belt slippage</td><td><code>γt²</code></td><td>Slow wear at first, then it accelerates</td></tr>
+      </tbody>
+    </table>
+    <p>Severity is then mapped onto the signals, each with its own sensitivity <code>k</code>. Degraded parts also get noisier:</p>
+    <span class="math">x' = x·(1 + k·s) + offset·s        e.g. bearing: vibration ×(1 + 1.8s), temp +25s °C</span>
+    <p>The default run has three overlapping faults: filter (day 20), bearing (day 35) and coil (day 55). Overlapping faults are the hard case for diagnosis.</p>
+  </section>
+
+  <!-- 1 DETECT -->
+  <section style="--accent: var(--red)">
+    <h2><span class="n">1</span>Detect: is this reading abnormal?</h2>
+    <p class="lead">Three detectors, each good at catching a different kind of change, are blended into a score in [0, 1].</p>
+    <p>A plain z-score threshold has two weaknesses. Set it tight and noise causes false alarms. Set it loose and it misses small, persistent shifts. So each sensor runs three detectors:</p>
+
+    <h3>a) EWMA residual: sudden departures</h3>
+    <p>A slow moving average follows the recent level. A reading far from that average is suspicious.</p>
+    <span class="math">e ← 0.01·x + 0.99·e          (memory ≈ 1/α = 100 samples)
+score_EWMA = |x − e| / 3σ</span>
+
+    <h3>b) CUSUM: small shifts that persist</h3>
+    <p>This is Page's cumulative sum. It adds up evidence that the mean has moved away from baseline. Deviations under the slack <code>k</code> are treated as noise and leak away. Anything larger keeps accumulating.</p>
+    <span class="math">S⁺ = max(0, S⁺ + (x − μ) − k)      k = 1σ
+S⁻ = min(0, S⁻ + (x − μ) + k)
+score_CUSUM = max(S⁺, |S⁻|) / h    h = 5σ</span>
+    <p>For a sustained shift of δσ, the sum grows by about (δ − 1)σ per sample. So it reaches h after about <code>5/(δ − 1)</code> samples: about 5 for a 2σ shift and about 25 for a 1.2σ shift. This is the detector that catches slow degradation.</p>
+
+    <h3>c) Isolation Forest: unusual values without a Gaussian assumption</h3>
+    <p>The forest is trained on the first 100 readings of each sensor. Values that random splits isolate in only a few cuts are rare. The raw score is scaled so the training median maps to 0.</p>
+
+    <h3>Blend</h3>
+    <span class="math">score = clip( 0.7·max(EWMA, CUSUM) + 0.3·IF )      anomalous if > 0.5
+signal_health = 1 − score</span>
+    <p>Taking the <code>max</code> means whichever of the two statistical detectors fires harder wins. The forest adds a smaller second opinion.</p>
+  </section>
+
+  <!-- 2 ASSESS -->
+  <section style="--accent: var(--blue)">
+    <h2><span class="n">2</span>Assess: how healthy is each part?</h2>
+    <p class="lead">Average the sensors into a component health, then take a criticality-weighted average of the components for the whole AHU.</p>
+    <div class="flow"><span>signal health</span><i>→ mean →</i><span>component health</span><i>→ weighted mean →</i><span>AHU health</span></div>
+    <span class="math">H_component = mean(signal healths)
+H_AHU = Σ wᵢ·Hᵢ     supply fan .35 · cooling coil .20 · filter .15 · return fan .15 · heating .10 · damper .05</span>
+    <p>Health then sets the state: <b>≥ 0.70</b> normal, <b>0.40 to 0.70</b> warning, <b>&lt; 0.40</b> critical. The weights reflect how much losing each part hurts the AHU. If the supply fan stops, nothing moves air.</p>
+  </section>
+
+  <!-- 3 DIAGNOSE -->
+  <section style="--accent: #7a5af5">
+    <h2><span class="n">3</span>Diagnose: which fault is it?</h2>
+    <p class="lead">Each fault has a fingerprint: a direction in signal space. Diagnosis picks the fingerprint the current deviations point towards.</p>
+    <p>Each component's readings become a z-vector over 7 signals: [vibration, acoustic, temp, current, ΔP, airflow, speed]. Every fault has a signature vector in the same space. For example, bearing wear is <code>[3, 1.5, 2.5, .8, 0, 0, 0]</code> and filter clogging is <code>[0, 0, 0, 1, 3, −2, 0]</code>.</p>
+    <span class="math">z = (x − μ)/σ  per signal
+confidence = max(0, cos θ) = max(0, z·sig / (‖z‖‖sig‖))     diagnosed if ≥ 0.45  (θ ≲ 63°)</span>
+    <p><b>Why cosine:</b> it compares direction and ignores magnitude. A fault in its first week and the same fault near failure point the same way, so severity doesn't change the diagnosis. The signatures are close to orthogonal (bearing · filter gives cos ≈ 0.05), which makes the faults easy to tell apart.</p>
+  </section>
+
+  <!-- 4 PREDICT -->
+  <section style="--accent: var(--amber)">
+    <h2><span class="n">4</span>Predict: how long until failure?</h2>
+    <p class="lead">Fit a curve to the recent health trajectory and extrapolate to where it crosses the failure line.</p>
+    <p>This only runs once a component drops into warning (H ≤ 0.70). Only the most recent 30% of its health history is used, so the current trend dominates.</p>
+    <span class="math">exponential:  H(t) = a·e^(bt) + c      (b ≤ 0: decaying)
+linear:       H(t) = m·t + c
+→ keep the fit with lower MSE; step forward 0.5 d (up to 180 d)
+RUL = first t where H(t) < 0.15</span>
+    <p>Two models are fitted because they disagree in a useful way. Exponential decay is usually the more pessimistic of the two, and it matches accelerating wear.</p>
+    <p><b>Failure probability</b> is a logistic function of health, centred on the critical line, plus an urgency bump when RUL is short:</p>
+    <span class="math">P = 1 / (1 + e^(6(H − 0.4)))   +  0.3·(1 − RUL/30)  if RUL < 30 d
+H = 1 → 0.03     H = 0.4 → 0.50     H = 0.15 → 0.82</span>
+  </section>
+
+  <!-- 5 ACT -->
+  <section style="--accent: var(--green)">
+    <h2><span class="n">5</span>Act: is it worth alerting someone?</h2>
+    <p class="lead">Alerts fire on real, sustained changes of state, not on single noisy ticks.</p>
+    <p>An alert needs all four of these to hold:</p>
+    <ul>
+      <li><b>Training gate:</b> day ≥ 20, so the detectors have learned what normal looks like.</li>
+      <li><b>Debounce:</b> 5 consecutive ticks in warning or critical. This filters out blips.</li>
+      <li><b>Edge trigger:</b> fire only when the state changes (normal→warning, warning→critical), not every tick.</li>
+      <li><b>Cooldown:</b> at least 3 sim-days since this component's last alert.</li>
+    </ul>
+    <p>Together these act like a Schmitt trigger: health hovering around 0.70 won't flood the operator with alerts.</p>
+    <p><b>Recommendations</b> are sticky in the same spirit. One is raised the first time a component degrades with a recognised fault. It stays until the component is back to normal, and its priority (critical / high if RUL &lt; 15 d / medium) is updated on every tick.</p>
+  </section>
+
+  <!-- CLOCK -->
+  <section style="--accent: var(--muted)">
+    <h2><span class="n">+</span>Time</h2>
+    <p class="lead">One tick is one sensor sample. The speed setting compresses wall-clock time.</p>
+    <span class="math">Δday per tick = speed / (tick_hz · 86400)        ticks per real second = speed · tick_hz</span>
+    <p>Both terms scale with <code>speed</code>, so sim time actually advances at <b>speed²</b>. At 50× that's about 2500×, and the 90-day scenario takes about 52 minutes. The UI and analytics are capped at 8 updates per second. "Jump to day N" replays the run silently in 30-sim-minute ticks so the detectors still warm up.</p>
+  </section>
+
+  <div class="note"><b>Worth knowing:</b> Health is derived from anomaly scores, not from the hidden severity. Once a fault persists, CUSUM saturates and that signal's health goes to ~0. So RUL extrapolates a detection-confidence curve, not a physical wear measurement. That's a common and reasonable proxy in PdM, but it's a proxy.</div>
+</main>
+<script>
+  const root = document.documentElement;
+  const saved = localStorage.getItem('cheatsheet-theme');
+  if (saved) root.dataset.theme = saved;
+  document.getElementById('theme-toggle').addEventListener('click', () => {
+    root.dataset.theme = root.dataset.theme === 'light' ? 'dark' : 'light';
+    localStorage.setItem('cheatsheet-theme', root.dataset.theme);
+  });
+</script>
+</body>
+</html>
